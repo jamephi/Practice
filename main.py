@@ -259,11 +259,11 @@ class GamesApp:
         cursor.execute("SELECT COUNT(*) FROM games")
         if cursor.fetchone()[0] == 0:
             initial_games = [
-                ("The Witcher 3: Wild Hunt", "RPG", 1500.0, "CD Projekt RED", "2015-05-19", 4.9, 450.0, "Культовая игра", ""),
+                ("The Witcher 3: Wild Hunt", "RPG", 1500.0, "CD Projekt RED", "2015-05-19", 4.9, 450.0, "Культовая RPG", ""),
                 ("Cyberpunk 2077", "RPG", 2000.0, "CD Projekt RED", "2020-12-10", 4.5, 1000.0, "Экшен в будущем", ""),
-                ("GTA V", "Action", 1200.0, "Rockstar Games", "2013-09-17", 4.8, None, "Криминальный мир", ""),
+                ("GTA V", "Action", 1200.0, "Rockstar Games", "2013-09-17", 4.8, None, "Криминальный экшен", ""),
                 ("Minecraft", "Sandbox", 1900.0, "Mojang Studios", "2011-11-18", 4.7, None, "Песочница", ""),
-                ("Elden Ring", "Action-RPG", 3999.0, "FromSoftware", "2022-02-25", 4.9, 2799.0, "Сложная игра", "")
+                ("Elden Ring", "Action-RPG", 3999.0, "FromSoftware", "2022-02-25", 4.9, 2799.0, "Сложная RPG", "")
             ]
             cursor.executemany(
                 "INSERT INTO games (name, category, price, developer, release_date, rating, discount_price, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -490,7 +490,7 @@ class GamesApp:
 
         self.update_table()
 
-    def export_txt((self, e=None):
+    def export_txt(self, e=None):
         if self.current_df.empty:
             self._show_snackbar("Нет данных для экспорта", error=True)
             return
