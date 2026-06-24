@@ -22,13 +22,13 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        # Ставим чистый flet (без проблемного cli-пакета для сборки) и фиксируем стабильный pyinstaller
-        pip install flet pandas openpyxl pyinstaller==6.3.0
+        # Устанавливаем полную версию flet со всеми десктопными компонентами
+        pip install flet[desktop] pandas openpyxl pyinstaller==6.3.0
 
     - name: Build EXE with PyInstaller
       run: |
-        # Используем флаг --collect-all flet, чтобы принудительно забрать весь интерфейс Flutter в обход сломанного хука
-        pyinstaller --noconsole --onefile --collect-all flet --name "ZPay_Games_Store" main.py
+        # Собираем приложение, принудительно включая модули flet и flet_desktop
+        pyinstaller --noconsole --onefile --collect-all flet --collect-all flet_desktop --name "ZPay_Games_Store" main.py
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
