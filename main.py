@@ -5,7 +5,7 @@ import threading
 import http.server
 import socketserver
 import os
-
+import sys
 
 class GamesApp:
     def __init__(self, page: ft.Page):
@@ -14,10 +14,14 @@ class GamesApp:
         self.page.window.width = 1150
         self.page.window.height = 900
         self.page.bgcolor = "#12141C"
-        data_folder = os.getcwd()
-        self.db_file = os.path.join(data_folder, "games_store.db")
-        self.report_txt = os.path.join(data_folder, "games_report.txt")
-        self.report_excel = os.path.join(data_folder, "games_report.xlsx")
+        if getattr(sys, 'frozen', False):
+    data_folder = os.path.dirname(sys.executable)
+else:
+    data_folder = os.path.dirname(os.path.abspath(__file__))
+
+self.db_file = os.path.join(data_folder, "games_store.db")
+self.report_txt = os.path.join(data_folder, "games_report.txt")
+self.report_excel = os.path.join(data_folder, "games_report.xlsx")
 
         self.df = pd.DataFrame()
         self.current_df = pd.DataFrame()
@@ -141,18 +145,21 @@ class GamesApp:
         self.status_text = ft.Text("Готово", color="#94A3B8", size=13)
 
     def start_local_server(self):
-        try:
+    try:
+        if getattr(sys, 'frozen', False):
+            script_dir = sys._MEIPASS
+        else:
             script_dir = os.path.dirname(os.path.abspath(__file__))
-            os.chdir(script_dir)
-        except:
-            pass
-        handler = http.server.SimpleHTTPRequestHandler
-        try:
-            self.httpd = socketserver.TCPServer(("localhost", 8000), handler)
-            thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
-            thread.start()
-        except:
-            pass
+        os.chdir(script_dir)
+    except:
+        pass
+    handler = http.server.SimpleHTTPRequestHandler
+    try:
+        self.httpd = socketserver.TCPServer(("localhost", 8000), handler)
+        thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
+        thread.start()
+    except:
+        pass
 
     def build(self):
         self.page.appbar = ft.AppBar(
