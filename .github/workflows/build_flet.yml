@@ -22,13 +22,12 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        # Устанавливаем полную версию flet со всеми десктопными компонентами
         pip install flet[desktop] pandas openpyxl pyinstaller==6.3.0
 
     - name: Build EXE with PyInstaller
       run: |
-        # Собираем приложение, принудительно включая модули flet и flet_desktop
-        pyinstaller --noconsole --onefile --collect-all flet --collect-all flet_desktop --name "ZPay_Games_Store" main.py
+        # Флаг --add-data "site.html;." указывает PyInstaller включить этот файл в корень сборки
+        pyinstaller --noconsole --onefile --collect-all flet --collect-all flet_desktop --add-data "site.html;." --name "ZPay_Games_Store" main.py
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
