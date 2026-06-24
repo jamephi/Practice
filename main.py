@@ -5,6 +5,7 @@ import threading
 import http.server
 import socketserver
 import os
+import sys
 
 
 class GamesApp:
@@ -14,7 +15,12 @@ class GamesApp:
         self.page.window.width = 1150
         self.page.window.height = 900
         self.page.bgcolor = "#12141C"
-        data_folder = os.getcwd()
+        
+        if getattr(sys, 'frozen', False):
+            data_folder = os.path.dirname(sys.executable)
+        else:
+            data_folder = os.path.dirname(os.path.abspath(__file__))
+
         self.db_file = os.path.join(data_folder, "games_store.db")
         self.report_txt = os.path.join(data_folder, "games_report.txt")
         self.report_excel = os.path.join(data_folder, "games_report.xlsx")
@@ -142,17 +148,20 @@ class GamesApp:
 
     def start_local_server(self):
         try:
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            os.chdir(script_dir)
-        except:
-            pass
-        handler = http.server.SimpleHTTPRequestHandler
-        try:
-            self.httpd = socketserver.TCPServer(("localhost", 8000), handler)
+            if getattr(sys, 'frozen', False):
+                script_dir = sys._MEIPASS
+            else:
+                script_dir = os.path.dirname(os.path.abspath(__file__))
+            
+            class CustomHandler(http.server.SimpleHTTPRequestHandler):
+                def __init__(self, *args, **kwargs):
+                    super().__init__(*args, directory=script_dir, **kwargs)
+
+            self.httpd = socketserver.TCPServer(("localhost", 8000), CustomHandler)
             thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
             thread.start()
-        except:
-            pass
+        except Exception as ex:
+            print(f"Ошибка запуска сервера: {str(ex)}")
 
     def build(self):
         self.page.appbar = ft.AppBar(
@@ -243,8 +252,24 @@ class GamesApp:
                            developer TEXT, 
                            release_date TEXT, 
                            rating REAL, 
-                           discount_price REAL)''')
-        conn.commit()
+                           discount_price REAL,
+                           description TEXT,
+                           image_url TEXT)''')
+        
+        cursor.execute("SELECT COUNT(*) FROM games")
+        if cursor.fetchone()[0] == 0:
+            initial_games = [
+                ("The Witcher 3: Wild Hunt", "RPG", 1500.0, "CD Projekt RED", "2015-05-19", 4.9, 450.0, "Культовая RPG", ""),
+                ("Cyberpunk 2077", "RPG", 2000.0, "CD Projekt RED", "2020-12-10", 4.5, 1000.0, "Экшен в будущем", ""),
+                ("GTA V", "Action", 1200.0, "Rockstar Games", "2013-09-17", 4.8, None, "Криминальный экшен", ""),
+                ("Minecraft", "Sandbox", 1900.0, "Mojang Studios", "2011-11-18", 4.7, None, "Песочница", ""),
+                ("Elden Ring", "Action-RPG", 3999.0, "FromSoftware", "2022-02-25", 4.9, 2799.0, "Сложная RPG", "")
+            ]
+            cursor.executemany(
+                "INSERT INTO games (name, category, price, developer, release_date, rating, discount_price, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                initial_games
+            )
+            conn.commit()
         conn.close()
 
     def refresh_data_from_db(self):
