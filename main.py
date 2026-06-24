@@ -152,16 +152,16 @@ class GamesApp:
                 script_dir = sys._MEIPASS
             else:
                 script_dir = os.path.dirname(os.path.abspath(__file__))
-            os.chdir(script_dir)
-        except:
-            pass
-        handler = http.server.SimpleHTTPRequestHandler
-        try:
-            self.httpd = socketserver.TCPServer(("localhost", 8000), handler)
+            
+            class CustomHandler(http.server.SimpleHTTPRequestHandler):
+                def __init__(self, *args, **kwargs):
+                    super().__init__(*args, directory=script_dir, **kwargs)
+
+            self.httpd = socketserver.TCPServer(("localhost", 8000), CustomHandler)
             thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
             thread.start()
-        except:
-            pass
+        except Exception as ex:
+            print(f"Ошибка запуска сервера: {str(ex)}")
 
     def build(self):
         self.page.appbar = ft.AppBar(
