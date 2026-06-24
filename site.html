@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --gradient: linear-gradient(to right, #6366f1, #a855f7);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        header { text-align: center; margin-bottom: 3rem; }
+
+        h1 { 
+            font-size: 4rem; margin: 0; 
+            background: var(--gradient); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+
+        .product-card:hover { transform: translateY(-15px) scale(1.02); }
+
+        .btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            background: var(--primary);
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover { filter: brightness(1.1); transform: scale(1.05); }
+
+        footer { margin-top: 50px; opacity: 1; text-align: center; }
+        
+        /* Увеличиваем размер иконок для кнопок */
+        .btn i { margin-right: 8px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ZPay</h1>
+        <p>Игровая платформа нового поколения</p>
+    </header>
+
+    <main class="products-grid">
+        <article class="product-card">
+            <h2>Desktop</h2>
+            <p>Ваши любимые игры на ПК.</p>
+            <a href="#" class="btn"><i class="fab fa-windows"></i> Скачать</a>
+        </article>
+        <article class="product-card">
+            <h2>Android</h2>
+            <p>Играйте в пути в любое время.</p>
+            <a href="#" class="btn"><i class="fab fa-android"></i> Скачать</a>
+        </article>
+    </main>
+
+    <footer>
+        <p>Разработчик: Лунин Захар Денисович (ИС-943)</p>
+        <a href="#" class="btn"><i class="fab fa-github"></i> GitHub</a>
+    </footer>
+
+</body>
+</html>
