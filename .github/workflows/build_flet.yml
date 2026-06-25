@@ -26,7 +26,6 @@ jobs:
 
     - name: Build EXE with PyInstaller
       run: |
-        # Флаг --add-data "site.html;." указывает PyInstaller включить этот файл в корень сборки
         pyinstaller --noconsole --onefile --collect-all flet --collect-all flet_desktop --add-data "site.html;." --name "ZPay_Games_Store" main.py
 
     - name: Upload Artifact
