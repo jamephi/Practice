@@ -1,18 +1,11 @@
 [project]
 name = "zpay-games-store"
-version = "0.1.0"
+version = "0.1.1"
 description = "Десктопное приложение для управления магазином игр и бизнес-аналитики"
-readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [
-    { name = "ZAHAR22", email = "luninzahar@gmail.com" }
-]
-dependencies = [
-    "flet>=0.21.0",
-    "pandas>=2.0.0",
-    "openpyxl>=3.1.0",
-]
+authors = [{ name = "ZAHAR22", email = "luninzahar@gmail.com" }]
+dependencies = ["flet>=0.21.0", "pandas>=2.0.0", "openpyxl>=3.1.0"]
 
 [project.scripts]
 zpay-games = "main:main"
@@ -22,7 +15,6 @@ name = "zpay-games-store"
 version = "0.1.0"
 description = "Десктопное приложение для управления магазином игр и бизнес-аналитики"
 authors = ["ZAHAR22 <luninzahar@gmail.com>"]
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
