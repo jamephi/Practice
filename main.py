@@ -5,8 +5,8 @@ import threading
 import http.server
 import socketserver
 import os
-import sys
-
+from tkinter import filedialog
+import tkinter as tk
 
 class GamesApp:
     def __init__(self, page: ft.Page):
@@ -15,12 +15,8 @@ class GamesApp:
         self.page.window.width = 1150
         self.page.window.height = 900
         self.page.bgcolor = "#12141C"
-        
-        if getattr(sys, 'frozen', False):
-            data_folder = os.path.dirname(sys.executable)
-        else:
-            data_folder = os.path.dirname(os.path.abspath(__file__))
 
+        data_folder = os.getcwd()
         self.db_file = os.path.join(data_folder, "games_store.db")
         self.report_txt = os.path.join(data_folder, "games_report.txt")
         self.report_excel = os.path.join(data_folder, "games_report.xlsx")
@@ -75,15 +71,6 @@ class GamesApp:
 
         self.entry_add_name = ft.TextField(label="Название игры", expand=2, border_color="#2A2F42",
                                            focused_border_color="#6366F1")
-        self.entry_add_description = ft.TextField(
-            label="Описание игры",
-            expand=True,
-            multiline=True,
-            min_lines=1,
-            max_lines=3,
-            border_color="#2A2F42",
-            focused_border_color="#6366F1"
-        )
         self.entry_add_category = ft.TextField(label="Жанр", expand=1, border_color="#2A2F42",
                                                focused_border_color="#6366F1")
         self.entry_add_price = ft.TextField(label="Цена", expand=1, border_color="#2A2F42",
@@ -109,28 +96,75 @@ class GamesApp:
             style=ft.ButtonStyle(bgcolor="#EF4444", color="#FFFFFF", shape=ft.RoundedRectangleBorder(radius=8))
         )
 
-        self.reports_list = [
-            "1. KPI: Общая выручка и продажи",
-            "2. ABC-анализ (Доля выручки по играм)",
+        self.top5_reports = [
             "3. Топ-5 самых продаваемых игр (шт.)",
             "4. Топ-5 свежих релизов (Новинки)",
-            "5. Распределение игр по категориям",
             "6. Топ-5 игр по рейтингу",
             "7. Топ-5 самых дорогих игр",
-            "8. Топ-5 игр с максимальной скидкой (%)",
+            "8. Топ-5 игр с максимальной скидкой (%)"
+        ]
+
+        self.other_reports = [
+            "1. KPI: Общая выручка и продажи",
+            "2. ABC-анализ (Доля выручки по играм)",
+            "5. Распределение игр по категориям",
             "9. Игры со скидкой",
             "10. Статистика по разработчикам"
         ]
 
-        self.combo_report = ft.Dropdown(
-            label="Выберите аналитический отчет:",
-            options=[ft.dropdown.Option(r) for r in self.reports_list],
-            expand=True, border_color="#2A2F42", focused_border_color="#10B981",
+        self.tile_top5 = ft.ExpansionTile(
+            title=ft.Text("Отчеты ТОП-5", color="#FFFFFF", weight=ft.FontWeight.W_600, size=13),
+            maintain_state=True,
+            expanded=False,
+            collapsed_text_color="#FFFFFF",
+            text_color="#6366F1",
+            collapsed_icon_color="#FFFFFF",
+            icon_color="#6366F1",
+            controls=[
+                ft.ListTile(
+                    title=ft.Text(r, color="#E2E8F0", size=13),
+                    on_click=lambda e, report=r: self.generate_report_by_name(report),
+                    hover_color="#1E2235"
+                ) for r in self.top5_reports
+            ]
         )
 
-        self.btn_run_report = ft.FilledButton(
-            content="Отчет", on_click=self.generate_report, icon=ft.Icons.ANALYTICS_ROUNDED,
-            style=ft.ButtonStyle(bgcolor="#10B981", color="#FFFFFF", shape=ft.RoundedRectangleBorder(radius=8))
+        self.tile_other = ft.ExpansionTile(
+            title=ft.Text("Остальные отчеты", color="#FFFFFF", weight=ft.FontWeight.W_600, size=13),
+            maintain_state=True,
+            expanded=False,
+            collapsed_text_color="#FFFFFF",
+            text_color="#10B981",
+            collapsed_icon_color="#FFFFFF",
+            icon_color="#10B981",
+            controls=[
+                ft.ListTile(
+                    title=ft.Text(r, color="#E2E8F0", size=13),
+                    on_click=lambda e, report=r: self.generate_report_by_name(report),
+                    hover_color="#1E2235"
+                ) for r in self.other_reports
+            ]
+        )
+
+        self.tile_analytics = ft.ExpansionTile(
+            title=ft.Text("Бизнес-аналитика (БД)", color="#FFFFFF", weight=ft.FontWeight.BOLD, size=14),
+            maintain_state=True,
+            expanded=False,
+            collapsed_text_color="#FFFFFF",
+            text_color="#10B981",
+            collapsed_icon_color="#FFFFFF",
+            icon_color="#10B981",
+            controls=[
+                ft.Container(content=self.tile_top5, padding=ft.Padding.only(left=10, top=5)),
+                ft.Container(content=self.tile_other, padding=ft.Padding.only(left=10, bottom=5))
+            ]
+        )
+
+        self.analytics_button_style = ft.Container(
+            content=self.tile_analytics,
+            bgcolor="#1E2235",
+            border_radius=8,
+            padding=ft.Padding.only(left=5, right=5)
         )
 
         self.data_table = ft.DataTable(
@@ -148,20 +182,45 @@ class GamesApp:
 
     def start_local_server(self):
         try:
-            if getattr(sys, 'frozen', False):
-                script_dir = sys._MEIPASS
-            else:
-                script_dir = os.path.dirname(os.path.abspath(__file__))
-            
-            class CustomHandler(http.server.SimpleHTTPRequestHandler):
-                def __init__(self, *args, **kwargs):
-                    super().__init__(*args, directory=script_dir, **kwargs)
-
-            self.httpd = socketserver.TCPServer(("localhost", 8000), CustomHandler)
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            os.chdir(script_dir)
+        except:
+            pass
+        handler = http.server.SimpleHTTPRequestHandler
+        try:
+            self.httpd = socketserver.TCPServer(("localhost", 8000), handler)
             thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
             thread.start()
-        except Exception as ex:
-            print(f"Ошибка запуска сервера: {str(ex)}")
+        except:
+            pass
+
+    def show_developer_info(self, e):
+        def close_dialog(ev):
+            dialog.open = False
+            self.page.update()
+
+        dialog = ft.AlertDialog(
+            modal=True,
+            bgcolor="#161926",
+            title=ft.Text("О разработчике", color="#F8FAFC", size=20, weight=ft.FontWeight.BOLD),
+            content=ft.Column([
+                ft.Row([
+                    ft.Text("Лунин Захар Денисович из группы ИС-943", color="#6366F1", size=24,
+                            weight=ft.FontWeight.W_600)
+                ], alignment=ft.MainAxisAlignment.CENTER),
+            ], tight=True, spacing=15),
+            actions=[
+                ft.TextButton(
+                    "Закрыть",
+                    on_click=close_dialog,
+                    style=ft.ButtonStyle(color="#6366F1")
+                )
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        self.page.overlay.append(dialog)
+        dialog.open = True
+        self.page.update()
 
     def build(self):
         self.page.appbar = ft.AppBar(
@@ -169,7 +228,9 @@ class GamesApp:
             bgcolor="#161926",
             center_title=False,
             actions=[
-                ft.IconButton(icon=ft.Icons.INFO, tooltip="О разработчике", url="http://localhost:8000/site.html"),
+                ft.IconButton(icon=ft.Icons.ACCOUNT_CIRCLE_ROUNDED, icon_color="#6366F1", tooltip="Разработчик",
+                              on_click=self.show_developer_info),
+                ft.IconButton(icon=ft.Icons.INFO, tooltip="О приложении", url="http://localhost:8000/site.html"),
                 ft.IconButton(icon=ft.Icons.TEXT_SNIPPET_ROUNDED, icon_color="#38BDF8", tooltip="Экспорт TXT",
                               on_click=self.export_txt),
                 ft.IconButton(icon=ft.Icons.GRID_ON_ROUNDED, icon_color="#34D399", tooltip="Экспорт Excel",
@@ -186,8 +247,7 @@ class GamesApp:
                 ft.Row([self.combo_sort_col, self.entry_cols], spacing=10),
                 ft.Row([self.switch_asc, self.btn_apply], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 ft.Divider(color="#2A2F42", thickness=1),
-                ft.Text("Бизнес-аналитика (БД)", color="#10B981", weight=ft.FontWeight.BOLD, size=14),
-                ft.Row([self.combo_report, self.btn_run_report], spacing=10),
+                self.analytics_button_style,
             ], spacing=12),
             padding=15,
             bgcolor="#161926",
@@ -201,7 +261,6 @@ class GamesApp:
                 ft.Row([self.entry_add_name, self.entry_add_category, self.entry_add_price], spacing=10),
                 ft.Row([self.entry_add_developer, self.entry_add_release_date, self.entry_add_rating,
                         self.entry_add_discount], spacing=10),
-                ft.Row([self.entry_add_description], spacing=10),
                 ft.Row([self.btn_add_game], alignment=ft.MainAxisAlignment.END),
                 ft.Divider(color="#2A2F42", thickness=1),
                 ft.Row([self.entry_delete_id, self.btn_delete_game], spacing=10),
@@ -235,8 +294,12 @@ class GamesApp:
 
         try:
             conn = sqlite3.connect(self.db_file)
-            self.df = pd.read_sql_query("SELECT * FROM games", conn)
+            full_df = pd.read_sql_query("SELECT * FROM games", conn)
             conn.close()
+
+            valid_cols = [c for c in self.columns_map.values() if c in full_df.columns]
+            self.df = full_df[valid_cols]
+
             self.reset_data()
         except Exception as e:
             self._show_snackbar(f"Ошибка БД: {str(e)}", error=True)
@@ -252,31 +315,19 @@ class GamesApp:
                            developer TEXT, 
                            release_date TEXT, 
                            rating REAL, 
-                           discount_price REAL,
-                           description TEXT,
-                           image_url TEXT)''')
-        
-        cursor.execute("SELECT COUNT(*) FROM games")
-        if cursor.fetchone()[0] == 0:
-            initial_games = [
-                ("The Witcher 3: Wild Hunt", "RPG", 1500.0, "CD Projekt RED", "2015-05-19", 4.9, 450.0, "Культовая RPG", ""),
-                ("Cyberpunk 2077", "RPG", 2000.0, "CD Projekt RED", "2020-12-10", 4.5, 1000.0, "Экшен в будущем", ""),
-                ("GTA V", "Action", 1200.0, "Rockstar Games", "2013-09-17", 4.8, None, "Криминальный экшен", ""),
-                ("Minecraft", "Sandbox", 1900.0, "Mojang Studios", "2011-11-18", 4.7, None, "Песочница", ""),
-                ("Elden Ring", "Action-RPG", 3999.0, "FromSoftware", "2022-02-25", 4.9, 2799.0, "Сложная RPG", "")
-            ]
-            cursor.executemany(
-                "INSERT INTO games (name, category, price, developer, release_date, rating, discount_price, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                initial_games
-            )
-            conn.commit()
+                           discount_price REAL)''')
+        conn.commit()
         conn.close()
 
     def refresh_data_from_db(self):
         try:
             conn = sqlite3.connect(self.db_file)
-            self.df = pd.read_sql_query("SELECT * FROM games", conn)
+            full_df = pd.read_sql_query("SELECT * FROM games", conn)
             conn.close()
+
+            valid_cols = [c for c in self.columns_map.values() if c in full_df.columns]
+            self.df = full_df[valid_cols]
+
             self.apply_ops()
         except Exception as e:
             self._show_snackbar(f"Ошибка обновления данных: {str(e)}", error=True)
@@ -289,7 +340,6 @@ class GamesApp:
         release_date = (self.entry_add_release_date.value or "").strip()
         rating = (self.entry_add_rating.value or "").strip()
         discount = (self.entry_add_discount.value or "").strip()
-        description = (self.entry_add_description.value or "").strip()
 
         if not name:
             self._show_snackbar("Поле 'Название игры' обязательно!", error=True)
@@ -304,8 +354,8 @@ class GamesApp:
             cursor = conn.cursor()
 
             cursor.execute(
-                "INSERT INTO games (name, category, price, developer, release_date, rating, discount_price, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (name, category, price_val, developer, release_date, rating_val, discount_val, description, "")
+                "INSERT INTO games (name, category, price, developer, release_date, rating, discount_price) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (name, category, price_val, developer, release_date, rating_val, discount_val)
             )
             conn.commit()
             conn.close()
@@ -317,7 +367,6 @@ class GamesApp:
             self.entry_add_release_date.value = ""
             self.entry_add_rating.value = ""
             self.entry_add_discount.value = ""
-            self.entry_add_description.value = ""
 
             self._show_snackbar(f"Игра '{name}' успешно добавлена!")
             self.refresh_data_from_db()
@@ -357,12 +406,10 @@ class GamesApp:
         except Exception as ex:
             self._show_snackbar(f"Ошибка удаления: {str(ex)}", error=True)
 
-    def generate_report(self, e=None):
-        report_name = self.combo_report.value
-        if not report_name:
-            self._show_snackbar("Выберите тип отчета из списка", error=True)
-            return
+    def generate_report_by_name(self, report_name: str):
+        self._execute_report(report_name)
 
+    def _execute_report(self, report_name: str):
         try:
             conn = sqlite3.connect(self.db_file)
             self.reverse_map = {}
@@ -485,7 +532,6 @@ class GamesApp:
         self.entry_filter_val.value = ""
         self.combo_sort_col.value = "(Нет)"
         self.entry_cols.value = ""
-        self.combo_report.value = None
         self.switch_asc.value = True
 
         self.update_table()
@@ -494,24 +540,50 @@ class GamesApp:
         if self.current_df.empty:
             self._show_snackbar("Нет данных для экспорта", error=True)
             return
-        try:
-            df_export = self.current_df.rename(columns=self.reverse_map)
-            with open(self.report_txt, "w", encoding="utf-8") as f:
-                f.write(df_export.to_string(index=False))
-            self._show_snackbar(f"Сохранено в файл {os.path.basename(self.report_txt)}!")
-        except Exception as ex:
-            self._show_snackbar(f"Ошибка экспорта: {str(ex)}", error=True)
+
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Text files", "*.txt")],
+            title="Выберите место для сохранения TXT"
+        )
+        root.destroy()
+
+        if file_path:
+            try:
+                df_export = self.current_df.rename(columns=self.reverse_map)
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(df_export.to_string(index=False))
+                self._show_snackbar(f"Успешно сохранено!")
+            except Exception as ex:
+                self._show_snackbar(f"Ошибка экспорта: {str(ex)}", error=True)
 
     def export_excel(self, e=None):
         if self.current_df.empty:
             self._show_snackbar("Нет данных для экспорта", error=True)
             return
-        try:
-            df_export = self.current_df.rename(columns=self.reverse_map)
-            df_export.to_excel(self.report_excel, index=False)
-            self._show_snackbar(f"Сохранено в файл {os.path.basename(self.report_excel)}!")
-        except Exception as ex:
-            self._show_snackbar(f"Ошибка экспорта: {str(ex)}", error=True)
+
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".xlsx",
+            filetypes=[("Excel files", "*.xlsx")],
+            title="Выберите место для сохранения Excel"
+        )
+        root.destroy()
+
+        if file_path:
+            try:
+                df_export = self.current_df.rename(columns=self.reverse_map)
+                df_export.to_excel(file_path, index=False)
+                self._show_snackbar(f"Успешно сохранено!")
+            except Exception as ex:
+                self._show_snackbar(f"Ошибка экспорта: {str(ex)}", error=True)
 
     def _show_snackbar(self, message: str, error: bool = False):
         self.page.snack_bar = ft.SnackBar(
