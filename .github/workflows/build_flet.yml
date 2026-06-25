@@ -47,14 +47,14 @@ jobs:
         if: matrix.name == 'windows'
         shell: pwsh
         run: |
-          uv run --with "flet[desktop]" --with pandas --with openpyxl --with "pyinstaller==6.3.0" pyinstaller --noconsole --onefile --collect-all flet --collect-all flet_desktop --name "zpay-games-store" main.py
+          uv run --no-project --with "flet[desktop]" --with pandas --with openpyxl --with "pyinstaller==6.3.0" pyinstaller --noconsole --onefile --collect-all flet --collect-all flet_desktop --name "zpay-games-store" main.py
 
       - name: Сборка Android (Flet CLI)
         if: matrix.name == 'apk'
         shell: bash
         run: |
-          uv run --with flet --with pandas --with openpyxl flet build apk . -o build/apk --yes --verbose
-
+          uv run --no-project --with flet --with pandas --with openpyxl flet build apk . -o build/apk --yes --verbose
+      
       - name: Переименование APK
         if: matrix.name == 'apk'
         shell: bash
