@@ -5,7 +5,8 @@ import threading
 import http.server
 import socketserver
 import os
-
+from tkinter import filedialog
+import tkinter as tk
 
 class GamesApp:
     def __init__(self, page: ft.Page):
@@ -539,24 +540,50 @@ class GamesApp:
         if self.current_df.empty:
             self._show_snackbar("Нет данных для экспорта", error=True)
             return
-        try:
-            df_export = self.current_df.rename(columns=self.reverse_map)
-            with open(self.report_txt, "w", encoding="utf-8") as f:
-                f.write(df_export.to_string(index=False))
-            self._show_snackbar(f"Сохранено в файл {os.path.basename(self.report_txt)}!")
-        except Exception as ex:
-            self._show_snackbar(f"Ошибка экспорта: {str(ex)}", error=True)
+
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Text files", "*.txt")],
+            title="Выберите место для сохранения TXT"
+        )
+        root.destroy()
+
+        if file_path:
+            try:
+                df_export = self.current_df.rename(columns=self.reverse_map)
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(df_export.to_string(index=False))
+                self._show_snackbar(f"Успешно сохранено!")
+            except Exception as ex:
+                self._show_snackbar(f"Ошибка экспорта: {str(ex)}", error=True)
 
     def export_excel(self, e=None):
         if self.current_df.empty:
             self._show_snackbar("Нет данных для экспорта", error=True)
             return
-        try:
-            df_export = self.current_df.rename(columns=self.reverse_map)
-            df_export.to_excel(self.report_excel, index=False)
-            self._show_snackbar(f"Сохранено в файл {os.path.basename(self.report_excel)}!")
-        except Exception as ex:
-            self._show_snackbar(f"Ошибка экспорта: {str(ex)}", error=True)
+
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".xlsx",
+            filetypes=[("Excel files", "*.xlsx")],
+            title="Выберите место для сохранения Excel"
+        )
+        root.destroy()
+
+        if file_path:
+            try:
+                df_export = self.current_df.rename(columns=self.reverse_map)
+                df_export.to_excel(file_path, index=False)
+                self._show_snackbar(f"Успешно сохранено!")
+            except Exception as ex:
+                self._show_snackbar(f"Ошибка экспорта: {str(ex)}", error=True)
 
     def _show_snackbar(self, message: str, error: bool = False):
         self.page.snack_bar = ft.SnackBar(
