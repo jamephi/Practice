@@ -47,7 +47,7 @@ jobs:
         if: matrix.name == 'windows'
         shell: pwsh
         run: |
-          uv run --no-project --with "flet[desktop]" --with pandas --with openpyxl --with "pyinstaller==6.11.0" --with "numpy<2.0.0" pyinstaller --noconsole --onefile --collect-all flet --collect-all flet_desktop --collect-all pandas --collect-all numpy --name "zpay-games-store" main.py
+          uv run --no-project --with "flet[desktop]" --with pandas --with openpyxl --with "pyinstaller==6.11.0" --with "numpy<2.0.0" pyinstaller --noconsole --onefile --collect-all flet --collect-all flet_desktop --collect-all pandas --collect-all numpy --add-data "database.db;." --name "zpay-games-store" main.py
 
       - name: Сборка Android (Flet CLI)
         if: matrix.name == 'apk'
