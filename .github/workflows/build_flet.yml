@@ -1,5 +1,6 @@
-name: Build Flet GUI Application
+name: Build Python App
 
+# Скрипт запускается при пуше в ветку main
 on:
   push:
     branches: [ "main" ]
@@ -7,30 +8,36 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-windows:
+  build:
+    # Собираем на Windows (если нужен .exe). Для Linux используйте ubuntu-latest
     runs-on: windows-latest
 
     steps:
+    # 1. Скачиваем код из репозитория
     - name: Checkout code
       uses: actions/checkout@v4
 
+    # 2. Устанавливаем Python
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.10' # Укажите вашу версию Python
 
+    # 3. Устанавливаем зависимости и PyInstaller
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flet[desktop] pandas openpyxl pyinstaller==6.3.0
+        pip install pyinstaller
+        if (Test-Path requirements.txt) { pip install -r requirements.txt }
 
-    - name: Build EXE with PyInstaller
+    # 4. Собираем приложение в один файл
+    - name: Build with PyInstaller
       run: |
-        # Вшиваем site.html внутрь исполняемого файла
-        pyinstaller --noconsole --onefile --collect-all flet --collect-all flet_desktop --add-data "site.html;." --name "ZPay_Games_Store" main.py
+        pyinstaller --onefile main.py
 
+    # 5. Сохраняем готовый файл в артефакты GitHub
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ZPay_Games_Store_Windows
-        path: dist/ZPay_Games_Store.exe
+        name: my-python-app-windows
+        path: dist/main.exe
